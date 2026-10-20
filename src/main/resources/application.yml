@@ -1,0 +1,87 @@
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /
+  error:
+    include-message: always
+    include-binding-errors: always
+
+spring:
+  application:
+    name: learnloop
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:learnloop}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    username: ${DB_USERNAME:learnloop_user}
+    password: ${DB_PASSWORD:learnloop_secret}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 15
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP:learnloop-consumer-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: false
+
+learnloop:
+  jwt:
+    secret: ${JWT_SECRET:LearnLoopSecretKeyMustBeAtLeast256BitsLongForHMACSHA256Security2026!}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    cookie-name: learnloop_token
+  admin:
+    bootstrap-enabled: ${ADMIN_BOOTSTRAP_ENABLED:true}
+    email: ${ADMIN_BOOTSTRAP_EMAIL:admin@learnloop.com}
+    password: ${ADMIN_BOOTSTRAP_PASSWORD:Admin@LearnLoop2026!}
+    name: ${ADMIN_BOOTSTRAP_NAME:LearnLoop Administrator}
+  outbox:
+    enabled: ${OUTBOX_PUBLISHER_ENABLED:true}
+    polling-rate-ms: ${OUTBOX_POLLING_RATE_MS:3000}
+    batch-size: 50
+    max-retries: 5
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
