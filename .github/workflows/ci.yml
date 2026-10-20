@@ -1,0 +1,57 @@
+name: LearnLoop CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-and-test:
+    name: Build & Test (Java 21, MySQL, Kafka)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.4.0
+        env:
+          MYSQL_ROOT_PASSWORD: root_secret
+          MYSQL_DATABASE: learnloop
+          MYSQL_USER: learnloop_user
+          MYSQL_PASSWORD: learnloop_secret
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping -u learnloop_user --password=learnloop_secret" --health-interval=10s --health-timeout=5s --health-retries=5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Verify Maven Wrapper
+        run: chmod +x mvnw
+
+      - name: Compile Application
+        run: ./mvnw clean compile -B
+
+      - name: Run Automated Test Suite
+        run: ./mvnw test -B
+        env:
+          DB_HOST: localhost
+          DB_PORT: 3306
+          DB_NAME: learnloop
+          DB_USERNAME: learnloop_user
+          DB_PASSWORD: learnloop_secret
+          JWT_SECRET: LearnLoopCISecretKeyMustBeAtLeast256BitsLongForHMACSHA256Security2026!
+
+      - name: Package Executable JAR
+        run: ./mvnw package -DskipTests -B
+
+      - name: Verify Dockerfile Build
+        run: docker build -t learnloop:latest .

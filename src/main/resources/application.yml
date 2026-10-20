@@ -11,7 +11,7 @@ spring:
     name: learnloop
 
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:learnloop}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
+    url: ${DB_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:learnloop}?useSSL=${DB_USE_SSL:false}&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8}
     username: ${DB_USERNAME:learnloop_user}
     password: ${DB_PASSWORD:learnloop_secret}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -25,7 +25,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
-      ddl-auto: validate
+      ddl-auto: ${HIBERNATE_DDL_AUTO:none}
     open-in-view: false
     show-sql: false
     properties:
@@ -52,8 +52,12 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       enable-auto-commit: false
+    admin:
+      fail-fast: false
 
 learnloop:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8080,http://localhost:3000,http://localhost:5173,https://*.vercel.app}
   jwt:
     secret: ${JWT_SECRET:LearnLoopSecretKeyMustBeAtLeast256BitsLongForHMACSHA256Security2026!}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}

@@ -1,0 +1,46 @@
+services:
+  # LearnLoop Spring Boot Backend on Render
+  - type: web
+    name: learnloop-backend
+    runtime: docker
+    plan: starter
+    region: oregon
+    healthCheckPath: /actuator/health
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: 3306
+      - key: DB_NAME
+        value: learnloop
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_USE_SSL
+        value: true
+      - key: KAFKA_BOOTSTRAP_SERVERS
+        sync: false
+      - key: KAFKA_SECURITY_PROTOCOL
+        value: SASL_SSL
+      - key: KAFKA_SASL_MECHANISM
+        value: PLAIN
+      - key: KAFKA_SASL_JAAS_CONFIG
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION_MS
+        value: 86400000
+      - key: ADMIN_BOOTSTRAP_ENABLED
+        value: true
+      - key: ADMIN_BOOTSTRAP_EMAIL
+        value: admin@learnloop.com
+      - key: ADMIN_BOOTSTRAP_PASSWORD
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://*.vercel.app,http://localhost:3000,http://localhost:8080

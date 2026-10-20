@@ -1,10 +1,12 @@
 package com.learnloop.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.TopicBuilder;
+import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
@@ -21,6 +23,13 @@ public class KafkaConfig {
     public static final String TOPIC_NOTIFICATION = "learnloop.notification.events";
     public static final String TOPIC_LEARNING_ACTIVITY = "learnloop.learning-activity.events";
     public static final String TOPIC_DLT = "learnloop.dlt";
+
+    @Bean
+    public KafkaAdmin kafkaAdmin(KafkaProperties properties) {
+        KafkaAdmin admin = new KafkaAdmin(properties.buildAdminProperties(null));
+        admin.setFatalIfBrokerNotAvailable(false);
+        return admin;
+    }
 
     @Bean
     public NewTopic enrollmentTopic() {
