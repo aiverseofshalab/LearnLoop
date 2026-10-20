@@ -56,10 +56,10 @@
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
-        <!-- Database: MySQL 8.4 LTS Driver & Flyway -->
+        <!-- Database: PostgreSQL Driver & Flyway -->
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -68,7 +68,7 @@
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-mysql</artifactId>
+            <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
         <!-- JWT for secure stateless authentication & cookie management -->

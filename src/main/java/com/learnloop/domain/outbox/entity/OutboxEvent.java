@@ -28,7 +28,7 @@ public class OutboxEvent {
     @Column(name = "aggregate_id", length = 100, nullable = false)
     private String aggregateId;
 
-    @Column(name = "payload", columnDefinition = "LONGTEXT", nullable = false)
+    @Column(name = "payload", columnDefinition = "TEXT", nullable = false)
     private String payload;
 
     @Enumerated(EnumType.STRING)

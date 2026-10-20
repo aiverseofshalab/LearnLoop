@@ -38,7 +38,7 @@ public class Lesson {
     @Column(name = "content_type", length = 20, nullable = false)
     private ContentType contentType = ContentType.TEXT;
 
-    @Column(name = "content_url_or_text", columnDefinition = "LONGTEXT", nullable = false)
+    @Column(name = "content_url_or_text", columnDefinition = "TEXT", nullable = false)
     private String contentUrlOrText;
 
     @Column(name = "position", nullable = false)
