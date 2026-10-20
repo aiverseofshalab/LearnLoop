@@ -6,7 +6,7 @@
 | :--- | :--- | :--- |
 | **Frontend** | **Vercel** | Edge-cached static PWA delivery, HTTPS, asset compression, rewrites to backend |
 | **Backend** | **Render** | Spring Boot 3.3.5 Docker service, REST API, scheduled outbox publisher, Kafka consumers |
-| **Database** | **Managed MySQL 8.4 LTS** | Primary relational store (Aiven, DigitalOcean, or AWS RDS MySQL) |
+| **Database** | **Render Managed PostgreSQL** | Primary relational store (PostgreSQL 16 on Render or AWS RDS / Supabase) |
 | **Messaging** | **Managed Apache Kafka** | Cloud Kafka cluster with SASL_SSL (Confluent Cloud or Upstash Kafka) |
 
 ---
@@ -14,11 +14,12 @@
 ## 2. Pre-Deployment Configuration Checklist
 
 - [x] **No Hardcoded Secrets**: Secrets and database passwords are read exclusively via environment variables.
-- [x] **Strict MySQL 8.4 Engine**: Zero PostgreSQL dependencies or syntax in application or migrations.
+- [x] **PostgreSQL 16 Compatibility**: Flyway migrations `V1`–`V6` optimized for PostgreSQL.
+- [x] **Render DATABASE_URL Support**: Built-in conversion from `postgres://...` to JDBC PostgreSQL URL in `DatabaseConfig.java`.
 - [x] **CORS Configuration**: Dynamic allowlist configured for `https://*.vercel.app` via `CORS_ALLOWED_ORIGINS`.
 - [x] **Dynamic PORT Binding**: Render's `$PORT` is mapped to Spring Boot via `-Dserver.port=${PORT:-8080}` in `Dockerfile`.
 - [x] **Resilient Kafka Startup**: `KafkaAdmin.setFatalIfBrokerNotAvailable(false)` configured to prevent boot crashes.
-- [x] **Outbox Persistence**: Events are committed atomically in MySQL before dispatching to Kafka topics.
+- [x] **Outbox Persistence**: Events are committed atomically in PostgreSQL before dispatching to Kafka topics.
 - [x] **Consumer Idempotency**: Deduplication via `processed_events` table prevents duplicate side-effects.
 - [x] **PWA & Offline Fallback**: Valid `manifest.json`, `sw.js` (with API exclusion), and responsive layout across mobile and desktop.
 
@@ -26,15 +27,13 @@
 
 ## 3. Step 1: Provision Cloud Database & Kafka
 
-### A. Managed MySQL 8.4 LTS (e.g. Aiven, AWS RDS, DigitalOcean)
-1. Create a MySQL 8.4 database service named `learnloop`.
-2. Create an application user with strong password:
-   ```sql
-   CREATE USER 'learnloop_app'@'%' IDENTIFIED BY '[SECURE_PASSWORD]';
-   GRANT ALL PRIVILEGES ON learnloop.* TO 'learnloop_app'@'%';
-   FLUSH PRIVILEGES;
-   ```
-3. Copy the host, port (`3306`), username, and password. Enable SSL (`DB_USE_SSL=true`).
+### A. Render Managed PostgreSQL
+1. When deploying via `render.yaml`, Render automatically provisions `learnloop-db` (PostgreSQL 16) and injects `DATABASE_URL`.
+2. If provisioning manually on Render:
+   - Click **New +** -> **PostgreSQL**.
+   - Name: `learnloop-db`, Database: `learnloop`, User: `learnloop_user`.
+   - Copy the **Internal Database URL** (for same-region web service) or **External Database URL**.
+   - Set `DB_SSL_MODE=require`.
 
 ### B. Managed Apache Kafka (e.g. Confluent Cloud or Upstash)
 1. Create a Kafka cluster.
@@ -63,12 +62,8 @@
 | Variable | Recommended Production Value | Description |
 | :--- | :--- | :--- |
 | `SPRING_PROFILES_ACTIVE` | `prod` | Enables production profile |
-| `DB_HOST` | `[YOUR_MYSQL_HOST]` | Managed MySQL endpoint |
-| `DB_PORT` | `3306` | MySQL port |
-| `DB_NAME` | `learnloop` | Database name |
-| `DB_USERNAME` | `learnloop_app` | Database username |
-| `DB_PASSWORD` | `[SECURE_DB_PASSWORD]` | Database password |
-| `DB_USE_SSL` | `true` | Enforces TLS connection to MySQL |
+| `DATABASE_URL` | `[AUTO_WIRED_OR_POSTGRES_URL]` | Render PostgreSQL Connection String |
+| `DB_SSL_MODE` | `require` | Enforces TLS connection to PostgreSQL |
 | `KAFKA_BOOTSTRAP_SERVERS` | `[CLOUD_KAFKA_HOST:9092]` | Cloud Kafka bootstrap servers |
 | `KAFKA_SECURITY_PROTOCOL` | `SASL_SSL` | SASL SSL for cloud Kafka |
 | `KAFKA_SASL_MECHANISM` | `PLAIN` | SASL mechanism |

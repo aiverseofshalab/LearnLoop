@@ -11,10 +11,10 @@ spring:
     name: learnloop
 
   datasource:
-    url: ${DB_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:learnloop}?useSSL=${DB_USE_SSL:false}&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8}
-    username: ${DB_USERNAME:learnloop_user}
-    password: ${DB_PASSWORD:learnloop_secret}
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:learnloop}?sslmode=${DB_SSL_MODE:prefer}}}
+    username: ${DB_USERNAME:${PGUSER:learnloop_user}}
+    password: ${DB_PASSWORD:${PGPASSWORD:learnloop_secret}}
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 15
       minimum-idle: 5
@@ -23,7 +23,7 @@ spring:
       max-lifetime: 1200000
 
   jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: ${HIBERNATE_DDL_AUTO:none}
     open-in-view: false

@@ -46,7 +46,7 @@ sequenceDiagram
     actor Student
     participant Controller as EnrollmentController
     participant Service as EnrollmentService
-    participant DB as MySQL 8.4 (InnoDB)
+    participant DB as PostgreSQL (ACID)
     participant OutboxPoller as OutboxPublisher (Scheduled)
     participant Kafka as Apache Kafka Broker
     participant Consumer as NotificationEventConsumer
@@ -88,7 +88,7 @@ sequenceDiagram
 
 Kafka delivers messages with **at-least-once** semantics. If network interruptions prevent a consumer offset commit from reaching the broker, the same event may be redelivered.
 
-LearnLoop protects against duplicate processing using the `processed_events` table in MySQL:
+LearnLoop protects against duplicate processing using the `processed_events` table in PostgreSQL:
 1. When an event arrives, the consumer queries `processed_events` for `(event_id, consumer_group)`.
 2. If the tuple exists, the event is immediately discarded without creating duplicate notifications or metrics.
 3. If not found, the notification is created and the tuple is inserted in the same database transaction.
@@ -98,6 +98,6 @@ LearnLoop protects against duplicate processing using the `processed_events` tab
 
 ## 5. Failure Recovery & Broker Outages
 
-- **Broker Outage**: If Kafka becomes unreachable, Spring Boot does not fail HTTP requests. Business transactions commit successfully to MySQL, and outbox records remain in `PENDING` state. Once Kafka recovers, the `OutboxPublisher` processes the accumulated backlog in chronological order.
+- **Broker Outage**: If Kafka becomes unreachable, Spring Boot does not fail HTTP requests. Business transactions commit successfully to PostgreSQL, and outbox records remain in `PENDING` state. Once Kafka recovers, the `OutboxPublisher` processes the accumulated backlog in chronological order.
 - **Repeated Failures**: If an event fails to serialize or broker rejects delivery after 5 retries (`retry_count >= 5`), the status transitions to `FAILED` and an alert is recorded.
 - **Dead-Letter Topic (DLT)**: Events that cannot be deserialized or processed by consumers are redirected to `learnloop.dlt` for inspection by system administrators.

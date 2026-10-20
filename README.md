@@ -3,10 +3,11 @@
 
 [![Java](https://img.shields.io/badge/Java-21%20LTS-orange.svg)](https://adoptium.net/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.3.5-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![MySQL](https://img.shields.io/badge/MySQL-8.4%20LTS-blue.svg)](https://www.mysql.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16%20LTS-blue.svg)](https://www.postgresql.org/)
 [![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-KRaft-red.svg)](https://kafka.apache.org/)
 [![Flyway](https://img.shields.io/badge/Flyway-Migrations-red.svg)](https://flywaydb.org/)
-[![PWA Ready](https://img.shields.io/badge/PWA-Ready-purple.svg)](#cross-platform-pwa)
+[![Render](https://img.shields.io/badge/Deploy-Render-black.svg)](https://render.com/)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-black.svg)](https://vercel.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](#)
 
 ---
@@ -31,7 +32,7 @@ Unlike traditional toy projects, LearnLoop implements real-world distributed sys
 - **Framework**: Spring Boot 3.3.5
 - **Security**: Spring Security (Stateless JWT + HttpOnly SameSite=Lax cookie authentication)
 - **Persistence**: Spring Data JPA, Hibernate, HikariCP
-- **Database**: **MySQL 8.4 LTS** with versioned **Flyway** schema migrations
+- **Database**: **PostgreSQL 16 LTS** with versioned **Flyway** schema migrations
 - **Messaging & Streaming**: Spring Kafka + Apache Kafka 7.6.1 in **KRaft mode** (Zero ZooKeeper dependencies)
 - **Documentation**: OpenAPI 3.0 & Swagger UI via `springdoc-openapi`
 - **Observability**: Spring Boot Actuator (`/actuator/health`, `/actuator/info`)
@@ -44,10 +45,13 @@ Unlike traditional toy projects, LearnLoop implements real-world distributed sys
 - **HTTP Client**: Native Fetch API with unified request correlation headers (`X-Correlation-ID`)
 - **Offline & Install**: W3C Web App Manifest (`manifest.json`) + Service Worker (`sw.js`) with cache-first static asset delivery and offline fallback page
 
-### Infrastructure & DevOps
+### Infrastructure & Cloud Deployment
+- **Frontend Hosting**: **Vercel** with edge caching, static asset optimization, and API rewrites
+- **Backend Hosting**: **Render** Docker Web Service with dynamic port binding and `/actuator/health` probe
+- **Database**: **Render Managed PostgreSQL** (or external AWS RDS / Supabase / Neon)
+- **Messaging**: **Confluent Cloud** or **Upstash Kafka** (Serverless KRaft)
 - **Containerization**: Multi-stage production `Dockerfile` (Maven builder -> Eclipse Temurin 21 JRE runtime, non-root user)
-- **Orchestration**: `docker-compose.yml` with healthchecks for MySQL 8.4, Kafka KRaft, and LearnLoop App
-- **Continuous Integration**: GitHub Actions workflow (`.github/workflows/ci.yml`)
+- **Local Dev Orchestration**: `docker-compose.yml` with healthchecks for PostgreSQL 16, Kafka KRaft, and LearnLoop App
 
 ---
 
@@ -75,7 +79,7 @@ graph TD
     end
 
     subgraph DataStore ["Primary Storage"]
-        MySQL[(MySQL 8.4 LTS InnoDB<br/>ACID Transactions)]
+        Postgres[(PostgreSQL 16 LTS<br/>ACID Transactions)]
     end
 
     subgraph Messaging ["Event Streaming"]
@@ -84,9 +88,9 @@ graph TD
 
     UI -->|REST / JSON| Security
     Security --> Domains
-    Domains -->|Spring Data JPA| MySQL
+    Domains -->|Spring Data JPA| Postgres
     Course & Enroll & Doubt & Assign -->|Atomic Commit| OutboxEng
-    OutboxEng --> MySQL
+    OutboxEng --> Postgres
     OutboxEng -.->|Scheduled Poll & Publish| Kafka
     Kafka -.->|Idempotent Consumer| Notif
 ```
@@ -97,7 +101,7 @@ graph TD
 
 ### 🎓 1. Student Enrollment & Outbox Kafka Notification
 1. Student clicks **Enroll** on a published course.
-2. In a single MySQL database transaction, `EnrollmentService` records the active enrollment and writes an `OutboxEvent` with status `PENDING`.
+2. In a single PostgreSQL database transaction, `EnrollmentService` records the active enrollment and writes an `OutboxEvent` with status `PENDING`.
 3. The HTTP response completes in `< 30ms`.
 4. The background `OutboxPublisher` polls the outbox, dispatches the event to `learnloop.enrollment.events`, and marks the outbox record `PUBLISHED`.
 5. `NotificationEventConsumer` processes the message, checks the `processed_events` table for deduplication, and writes a persistent in-app notification for the student.
@@ -137,11 +141,11 @@ cd learn_loop
 cp .env.example .env
 ```
 
-### Step 2: Start MySQL 8.4 and Kafka KRaft
+### Step 2: Start PostgreSQL 16 and Kafka KRaft
 ```bash
-docker compose up -d mysql kafka
+docker compose up -d postgres kafka
 ```
-*Wait ~20 seconds for the health checks to become healthy (`docker compose ps`).*
+*Wait ~15 seconds for the health checks to become healthy (`docker compose ps`).*
 
 ### Step 3: Run Database Migrations & Start Backend
 #### On macOS / Linux:
@@ -154,7 +158,7 @@ docker compose up -d mysql kafka
 .\mvnw.cmd clean spring-boot:run
 ```
 
-Flyway will automatically apply all migrations (`V1` through `V6`) to MySQL 8.4 and create the initial administrator account.
+Flyway will automatically apply all migrations (`V1` through `V6`) to PostgreSQL and create the initial administrator account.
 
 ### Step 4: Open in Browser
 - **LearnLoop Web Application**: [http://localhost:8080](http://localhost:8080)
@@ -210,11 +214,11 @@ LearnLoop includes automated unit and integration tests covering security, domai
 Detailed architectural and operational documentation is available in the [`docs/`](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs) directory:
 
 - [ARCHITECTURE.md](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs/ARCHITECTURE.md) — Modular monolith rationale, component responsibilities, and transaction boundaries.
-- [ER_DIAGRAM.md](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs/ER_DIAGRAM.md) — Complete MySQL 8.4 schema, data types, indexes, and Mermaid entity-relationship diagram.
+- [ER_DIAGRAM.md](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs/ER_DIAGRAM.md) — Complete PostgreSQL 16 schema, data types, indexes, and Mermaid entity-relationship diagram.
 - [API.md](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs/API.md) — Full REST endpoint catalog under `/api/v1` with request/response payloads.
 - [SECURITY.md](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs/SECURITY.md) — Authentication flow, BCrypt hashing, RBAC, XSS/CORS, and secrets management.
 - [KAFKA.md](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs/KAFKA.md) — Event contracts, Transactional Outbox sequence diagrams, and consumer idempotency.
-- [DEPLOYMENT.md](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs/DEPLOYMENT.md) — Step-by-step production cloud deployment with managed MySQL & Kafka.
+- [DEPLOYMENT.md](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs/DEPLOYMENT.md) — Step-by-step production cloud deployment on Render (PostgreSQL) and Vercel.
 - [TESTING.md](file:///Users/shalabksr23/ALL%20PROJECT%20FOLDER/learn_loop/docs/TESTING.md) — Test matrix, assertions, and JVM execution instructions.
 
 ---

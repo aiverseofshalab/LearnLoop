@@ -18,12 +18,12 @@ All identified architectural and configuration blockers were resolved, automated
 
 - **Backend**: Spring Boot 3.3.5, Java 21+ LTS, Spring Data JPA, Hibernate 6, Spring Kafka, Springdoc OpenAPI 2.6.0.
 - **Frontend**: Pure Vanilla HTML5, CSS3 Custom Properties (Dark glassmorphic theme), ES Modules (`app.js`, `api.js`, views), and Service Worker PWA (`manifest.json`, `sw.js`, `offline.html`).
-- **Database**: **MySQL 8.4 LTS** with 6 sequential Flyway migrations (`CHAR(36)` UUIDs, `DATETIME(6)` in UTC, `DECIMAL(5,2)` for marks). **Zero PostgreSQL dependencies**.
+- **Database**: **PostgreSQL 16 LTS** with 6 sequential Flyway migrations (`VARCHAR(36)` UUIDs, `TIMESTAMP` in UTC, `DECIMAL(5,2)` for marks).
 - **Messaging**: Apache Kafka in KRaft mode with Transactional Outbox pattern (`outbox_events` table) and idempotent consumer store (`processed_events` table).
 - **Hosting Targets**:
   - Frontend: **Vercel** (Edge static hosting with API rewrites)
   - Backend: **Render** (Docker Web Service binding to dynamic `$PORT`)
-  - Database: **Managed MySQL 8.4 LTS** (Aiven, DigitalOcean, or AWS RDS)
+  - Database: **Render Managed PostgreSQL** (or AWS RDS / Supabase / Neon)
   - Event Broker: **Managed Kafka** (Confluent Cloud or Upstash Kafka)
 
 ---

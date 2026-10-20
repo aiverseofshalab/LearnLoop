@@ -1,3 +1,12 @@
+databases:
+  # Render Managed PostgreSQL Database
+  - name: learnloop-db
+    databaseName: learnloop
+    user: learnloop_user
+    plan: free
+    region: oregon
+    postgresMajorVersion: "16"
+
 services:
   # LearnLoop Spring Boot Backend on Render
   - type: web
@@ -12,18 +21,13 @@ services:
         value: 8080
       - key: SPRING_PROFILES_ACTIVE
         value: prod
-      - key: DB_HOST
-        sync: false
-      - key: DB_PORT
-        value: 3306
-      - key: DB_NAME
-        value: learnloop
-      - key: DB_USERNAME
-        sync: false
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_USE_SSL
-        value: true
+      # Automatically wire Render PostgreSQL connectionString
+      - key: DATABASE_URL
+        fromDatabase:
+          name: learnloop-db
+          property: connectionString
+      - key: DB_SSL_MODE
+        value: require
       - key: KAFKA_BOOTSTRAP_SERVERS
         sync: false
       - key: KAFKA_SECURITY_PROTOCOL
